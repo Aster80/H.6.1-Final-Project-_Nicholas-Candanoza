@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Concrete Pad & Fence Estimator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2e2e2e;
+      --accent: #f5a623;
+      --accent2: #e8e8e8;
+      --text: #d4d4d4;
+      --muted: #666;
+      --danger: #e05252;
+      --success: #5ec98a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #1e1e1e 39px, #1e1e1e 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #1e1e1e 39px, #1e1e1e 40px);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #000, 8px 8px 0 0 var(--accent);
+      animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      background: var(--accent);
+      padding: 1.4rem 1.8rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 1rem;
+    }
+
+    .card-header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      color: #0f0f0f;
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+
+    .card-header .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      background: #0f0f0f;
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 2px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .card-body { padding: 2rem 1.8rem; }
+
+    .section-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      margin-top: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-label:first-of-type { margin-top: 0; }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .input-row.single { grid-template-columns: 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+    label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    input[type="number"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--accent2);
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      padding: 0.65rem 0.8rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--accent); }
+    input[type="number"]::placeholder { color: #3a3a3a; }
+
+    button {
+      width: 100%;
+      margin-top: 1.6rem;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: #0f0f0f;
+      border: none;
+      border-radius: 2px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button:hover { background: #ffc04a; }
+    button:active { transform: scale(0.98); }
+
+    .results {
+      margin-top: 1.6rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
+      animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .results.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-row:last-child { border-bottom: none; }
+
+    .result-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .result-value {
+      font-size: 1.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      color: var(--success);
+      letter-spacing: 0.05em;
+    }
+    .result-unit {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    .error-box {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #2a1414;
+      border: 1px solid var(--danger);
+      border-radius: 2px;
+      color: var(--danger);
+      font-size: 0.78rem;
+      display: none;
+    }
+    .error-box.visible { display: block; }
+
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="tag">v1.0 &mdash; Nicholas Candanoza</div>
+      <h1>Concrete Pad &amp;<br>Fence Estimator</h1>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <div class="section-label">Concrete Pad</div>
+    <div class="input-row">
+      <div class="field">
+        <label for="length">Length (ft)</label>
+        <input type="number" id="length" placeholder="e.g. 20" min="0" step="any"/>
+      </div>
+      <div class="field">
+        <label for="width">Width (ft)</label>
+        <input type="number" id="width" placeholder="e.g. 10" min="0" step="any"/>
+      </div>
+    </div>
+    <div class="input-row single">
+      <div class="field">
+        <label for="depth">Depth (ft)</label>
+        <input type="number" id="depth" placeholder="e.g. 0.5" min="0" step="any"/>
+      </div>
+    </div>
+
+    <div class="section-label">Chain-Link Fence</div>
+    <div class="input-row single">
+      <div class="field">
+        <label for="fenceLength">Total Fence Length (ft)</label>
+        <input type="number" id="fenceLength" placeholder="e.g. 100" min="0" step="any"/>
+      </div>
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="error-box" id="errorBox">⚠ Please enter valid numbers in all fields.</div>
+
+    <div class="results" id="results">
+      <div class="result-row">
+        <span class="result-label">Concrete Needed</span>
+        <span>
+          <span class="result-value" id="concreteResult">—</span>
+          <span class="result-unit">cubic yards</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Fence Panels (8 ft each)</span>
+        <span>
+          <span class="result-value" id="fenceResult">—</span>
+          <span class="result-unit">panels</span>
+        </span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">Concrete: L × W × D ÷ 27 &nbsp;|&nbsp; Fence: ceil(L ÷ 8)</div>
+
+<script>
+  function calculate() {
+    const l = parseFloat(document.getElementById('length').value);
+    const w = parseFloat(document.getElementById('width').value);
+    const d = parseFloat(document.getElementById('depth').value);
+    const f = parseFloat(document.getElementById('fenceLength').value);
+
+    const errorBox = document.getElementById('errorBox');
+    const results  = document.getElementById('results');
+
+    if ([l, w, d, f].some(v => isNaN(v) || v < 0)) {
+      errorBox.classList.add('visible');
+      results.classList.remove('visible');
+      return;
+    }
+
+    errorBox.classList.remove('visible');
+
+    // Match ConcreteEstimator.java logic
+    const cubicYards = (l * w * d) / 27;
+
+    // Match FenceEstimator.java logic
+    const panels = Math.ceil(f / 8);
+
+    document.getElementById('concreteResult').textContent = cubicYards.toFixed(2);
+    document.getElementById('fenceResult').textContent    = panels;
+
+    results.classList.remove('visible');
+    void results.offsetWidth; // force reflow for animation replay
+    results.classList.add('visible');
+  }
+
+  // Allow Enter key to trigger calculate
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+</script>
+
+</body>
+</html>
