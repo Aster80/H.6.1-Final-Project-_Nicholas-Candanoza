@@ -16,4 +16,4 @@ I would say I got about 70–85% complete. The main calculations and structure a
 
 ## What AI tools did you use?
 
-I used ChatGPT to generate Java and HTML code, assist with calculations, debug errors, and help design the structure of the application. It also helped me troubleshoot issues when the program didn’t run correctly.
+I used ChatGPT to generate Java and HTML code, assist with calculations, debug errors, and help design the structure of the application. It also helped me troubleshoot issues when the program didn’t run correctly. Then I used Claude to rework my code, and help me make the URL in github to use it in a new tab.
